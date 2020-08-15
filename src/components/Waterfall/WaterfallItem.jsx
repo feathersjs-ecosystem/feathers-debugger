@@ -14,7 +14,7 @@ const Root = styled.div`
 
 const DurationBar = styled.div`
   height: 3px;
-  transition: width 0.5s;
+  transition: width 0.3s;
 `;
 
 const Item = styled.div`
@@ -26,22 +26,24 @@ const Item = styled.div`
   white-space: nowrap;
 `;
 
+const Duration = styled.div`
+  margin: 0 5px;
+  font-weight: bold;
+  display: inline-block;
+`;
+
 const Method = styled.div`
   display: inline-block;
   line-height: 1.2;
-  margin-top: 2px;
-  margin-left: 2px;
-  background: #f96e46;
-  color: white;
+  color: #0631ef;
   border-radius: 3px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  padding: 1px 5px;
   font-size: 9px;
   font-weight: bold;
-  margin-right: 8px;
-  ${(p) => p.method === 'get' && `background: #EDB007;`}
-  ${(p) => p.method === 'create' && `background: #57467B;`}
+  margin-right: 5px;
+  ${(p) => p.method === 'get' && `color: #EDB007;`}
+  ${(p) => p.method === 'create' && `color: #57467B;`}
 `;
 
 const Gap = styled.div`
@@ -55,9 +57,12 @@ export default function WaterfallItem({
   start,
   previousItem,
 }) {
+  const prevOffset = previousItem ? item.ts - previousItem.ts : 0;
+  const gapWidth = item.ts - start;
+
   return (
     <Root>
-      <Gap style={{ width: (item.ts - start) * zoomFactor }} />
+      <Gap style={{ width: gapWidth * zoomFactor }} />
       <Item>
         <DurationBar
           style={{
@@ -66,8 +71,9 @@ export default function WaterfallItem({
           }}
         />
         <Method method={item.method}>{item.method}</Method>
-        {item.path} {item.duration}ms{' '}
-        {previousItem && <small>+{item.ts - previousItem.ts}ms</small>}
+        {item.path}
+        <Duration>{item.duration}ms</Duration>
+        {previousItem && <small>+{prevOffset}ms</small>}
       </Item>
     </Root>
   );

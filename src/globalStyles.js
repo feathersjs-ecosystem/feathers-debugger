@@ -2,12 +2,16 @@ import { createGlobalStyle } from 'styled-components';
 
 const GlobalStyle = createGlobalStyle`
   body {
-    background: #545863;
     margin: 0;
     padding: 0;
     font-family: sans-serif;
     line-height: 1.2;
   }
+  button {
+    outline: 0;
+    cursor: pointer;
+  }
+  
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
