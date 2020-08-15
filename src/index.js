@@ -5,6 +5,7 @@ import GlobalStyle from './globalStyles';
 import Waterfall from './components/Waterfall/Waterfall';
 import theme from './theme';
 
+// Initialize the devtools panel
 if (process.env.NODE_ENV === 'production') {
   chrome.devtools.panels.create( // eslint-disable-line
     'Feathers',
