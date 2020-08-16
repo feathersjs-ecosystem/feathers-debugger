@@ -13,7 +13,5 @@
       "128":"logo.png"
    },
    "devtools_page":"devtools.html",
-   "permissions":[
-      "storage"
-   ]
+   "permissions":[]
 }
