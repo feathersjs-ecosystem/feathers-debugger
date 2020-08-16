@@ -5,10 +5,17 @@ import styled from 'styled-components';
 const Root = styled.div`
   padding: 8px 0;
   display: flex;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid ${p => p.theme.border};
+  transition: 0.3s background;
   &:hover {
-    background: rgba(0, 30, 255, 0.05);
+    background: ${p => p.theme.background};
     cursor: pointer;
+  }
+  &:active {
+    * {
+      color: white;
+    }
+    background: ${p => p.theme.primary};
   }
 `;
 
@@ -42,8 +49,9 @@ const Method = styled.div`
   font-size: 9px;
   font-weight: bold;
   margin-right: 5px;
-  ${(p) => p.method === 'get' && `color: #EDB007;`}
-  ${(p) => p.method === 'create' && `color: #57467B;`}
+  ${p =>
+    p.method &&
+    `color: ${p.theme.methods[p.method] || p.theme.methods.default};`}
 `;
 
 const Gap = styled.div`

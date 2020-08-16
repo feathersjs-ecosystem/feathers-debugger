@@ -10,10 +10,7 @@ if (process.env.NODE_ENV === 'production') {
   chrome.devtools.panels.create( // eslint-disable-line
     'Feathers',
     null,
-    'devtools.html',
-    function () {
-      console.log('Panel ready');
-    }
+    'devtools.html'
   );
 }
 

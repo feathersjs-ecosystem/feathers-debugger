@@ -20,6 +20,7 @@ module.exports = {
       'error',
       {
         singleQuote: true,
+        arrowParens: 'avoid',
       },
     ],
     'jsx-a11y/*': 0,
@@ -35,6 +36,7 @@ module.exports = {
     'react/jsx-filename-extension': 0,
     'react/jsx-wrap-multilines': 0,
     'react/button-has-type': 0,
+    'react/jsx-curly-newline': 0,
     'no-param-reassign': 0,
     camelcase: 0,
   },

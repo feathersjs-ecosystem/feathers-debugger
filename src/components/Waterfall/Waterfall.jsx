@@ -1,26 +1,36 @@
 import React, { useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
-import sortBy from 'lodash/sortBy';
 import ReactTooltip from 'react-tooltip';
+import sortBy from 'lodash/fp/sortBy';
+import compose from 'lodash/fp/compose';
+import filter from 'lodash/fp/filter';
+import get from 'lodash/get';
+
 import WaterfallItem from './WaterfallItem';
-import ZoomIn from '../../assets/zoom-in.svg';
-import ZoomOut from '../../assets/zoom-out.svg';
-import Sync from '../../assets/sync.svg';
-import Tail from '../../assets/eye.svg';
-import TailDisabled from '../../assets/eye-o.svg';
-import Trash from '../../assets/trash.svg';
+import NoData from './NoData';
+
+import {
+  ZoomIn,
+  ZoomOut,
+  Sync,
+  Tail,
+  TailDisabled,
+  Trash,
+  ErrorTriangle,
+} from '../../assets';
 
 const Root = styled.div`
   background: #fff;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
 `;
 const PortInput = styled.input`
   font-size: 15px;
   font-weight: normal;
   height: 30px;
-  border: 1px solid #eee;
+  border: 1px solid ${p => p.theme.border};
   background: rgba(0, 0, 0, 0.03);
   border-radius: 3px;
   margin: 0;
@@ -45,21 +55,14 @@ const BtnGroup = styled.div`
     &:last-child {
       border-top-right-radius: 6px;
       border-bottom-right-radius: 6px;
-      border-right: 1px solid #eee;
+      border-right: 1px solid ${p => p.theme.border};
     }
   }
 `;
 
-const Title = styled.div`
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-weight: bold;
-`;
-
 const Btn = styled.button`
-  color: ${(p) => p.theme.primary};
-  border: 1px solid #eee;
+  border: 1px solid ${p => p.theme.border};
+  color: ${p => p.theme.text};
   background: none;
   display: inline-flex;
   align-items: center;
@@ -71,18 +74,17 @@ const Btn = styled.button`
   flex-shrink: 0;
   height: 35px;
   font-size: 11px;
-  color: #333;
   &:active {
-    background: #635380;
+    background: ${p => p.theme.primary};
     color: white;
     svg {
       fill: #fff;
     }
   }
-  ${(p) =>
+  ${p =>
     p.active === true &&
     css`
-      background: #635380;
+      background: ${x => x.theme.primary};
       color: white;
       svg {
         fill: #fff;
@@ -95,15 +97,23 @@ const Btn = styled.button`
   }
 `;
 
+const Title = styled.div`
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: bold;
+`;
+
 const Toolbar = styled.div`
   padding: 10px;
-  border: 1px solid #eee;
+  border: 1px solid ${p => p.theme.border};
   border-bottom: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
+  border-bottom: 1px solid ${p => p.theme.border};
   .right {
     display: flex;
     align-items: center;
@@ -111,7 +121,7 @@ const Toolbar = styled.div`
 `;
 
 const Container = styled.div`
-  border: 1px solid #eee;
+  border: 1px solid ${p => p.theme.border};
   border-bottom: none;
   overflow-x: overlay;
   box-sizing: border-box;
@@ -124,17 +134,17 @@ const WaterfallItems = styled.div`
   flex-grow: 1;
 `;
 
-const Caption = styled.div`
-  font-size: 10px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #ccc;
-  display: inline-block;
-  margin-right: 5px;
+const ErrorIcon = styled(ErrorTriangle)`
+  width: 15px;
+  height: 15px;
+  fill: ${p => p.theme.danger};
+  margin: 0 10px;
 `;
 
 let interval;
 let portTimeout;
+
+const TIMEFRAMES = [10 / 60, 0.5, 1, 3, 15];
 
 export default function Waterfall() {
   const [port, setPort] = useState(localStorage.getItem('port') || 3030);
@@ -145,32 +155,28 @@ export default function Waterfall() {
     Number(localStorage.getItem('timeframe')) || 3
   );
   const [autoZoom, setAutozoom] = useState(true);
-  const [tail, setTail] = useState(false);
+  const [tail, setTail] = useState(!!localStorage.getItem('tail') || false);
+  const [startTs, setStartTs] = useState(0);
 
-  const toggleTail = (val) => {
+  const toggleTail = val => {
     clearInterval(interval);
     if (val) setAutozoom(true);
     setTail(val);
   };
 
   const fetchData = () =>
-    fetch(`http://localhost:${port}/waterfall.txt`)
-      .then((res) => res.text())
-      .then((res) => {
+    fetch(`http://localhost:${port}/feathers-debugger`)
+      .then(res => res.text())
+      .then(res => {
         setFetchError(false);
         const ARR = [];
-        res.split('\n').forEach((item) => {
+        res.split('\n').forEach(item => {
           if (!item) return;
           ARR.push(JSON.parse(item));
         });
-        const sorted = sortBy(ARR, 'ts');
-        const filtered = sorted.filter(
-          (item) => item.ts > Date.now() - 1000 * 60 * timeframe
-        );
-        setItems(filtered);
+        setItems(ARR);
       })
       .catch(() => {
-        toggleTail(false);
         setFetchError(true);
       });
 
@@ -178,7 +184,15 @@ export default function Waterfall() {
     fetchData();
   }, [timeframe]);
 
-  const start = items.length ? items[0].ts : false;
+  const data = compose(
+    sortBy('ts'),
+    filter(item => {
+      if (startTs >= item.ts) return false;
+      return item.ts > Date.now() - 1000 * 60 * timeframe;
+    })
+  )(items);
+
+  const start = get(data[0], 'ts', 0);
 
   useEffect(() => {
     if (!items.length) return;
@@ -189,7 +203,7 @@ export default function Waterfall() {
     setZoomFactor(zoomFct);
   }, [items, autoZoom]) // eslint-disable-line
 
-  const setZoom = (factor) => () => {
+  const setZoom = factor => () => {
     setAutozoom(false);
     setZoomFactor(factor);
   };
@@ -205,7 +219,8 @@ export default function Waterfall() {
   useEffect(() => {
     localStorage.setItem('timeframe', timeframe);
     localStorage.setItem('port', port);
-  }, [timeframe, port]);
+    localStorage.setItem('tail', tail ? 'true' : '');
+  }, [timeframe, port, tail]);
 
   useEffect(() => {
     clearTimeout(portTimeout);
@@ -214,8 +229,15 @@ export default function Waterfall() {
     }, 500);
   }, [port]);
 
-  const updateTimeframe = (val) => () => {
+  const updateTimeframe = val => () => {
     setTimeframe(val);
+  };
+
+  // Filters
+
+  const clear = () => () => {
+    if (!data.length) return null;
+    return setStartTs(data[data.length - 1].ts); // to last item
   };
 
   return (
@@ -224,14 +246,14 @@ export default function Waterfall() {
       <Toolbar>
         <Title>Feathers Debugger</Title>
         <div className="right">
-          <Btn>
+          <Btn onClick={clear()} data-tip="Clear">
             <Trash />
           </Btn>
           <BtnGroup>
             <Btn
               onClick={() => toggleTail(!tail)}
               active={tail}
-              data-tip="realtime update"
+              data-tip="Watch server (realtime updates)"
             >
               {tail ? <Tail /> : <TailDisabled />}
             </Btn>
@@ -256,45 +278,46 @@ export default function Waterfall() {
             </Btn>
           </BtnGroup>
 
-          <BtnGroup data-tip="Set data time frame (in minutes)">
-            <Btn active={timeframe === 1} onClick={updateTimeframe(1)}>
-              1m
-            </Btn>
-            <Btn active={timeframe === 3} onClick={updateTimeframe(3)}>
-              3m
-            </Btn>
-            <Btn active={timeframe === 5} onClick={updateTimeframe(5)}>
-              5m
-            </Btn>
-            <Btn active={timeframe === 15} onClick={updateTimeframe(15)}>
-              15m
-            </Btn>
+          <BtnGroup data-tip="Look back timeframe (in minutes)">
+            {TIMEFRAMES.map(val => (
+              <Btn
+                active={timeframe === val}
+                key={val}
+                onClick={updateTimeframe(val)}
+              >
+                {val >= 1 ? `${val}m` : `${val * 60}s`}
+              </Btn>
+            ))}
           </BtnGroup>
         </div>
-        <div>
-          {fetchError && 'Error'}
-          <Caption>Port:</Caption>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {fetchError && (
+            <ErrorIcon data-tip="Error connecting to FeathersJS server" />
+          )}
           <PortInput
             data-tip="Feathers port (only localhost)"
             type="number"
-            onChange={(e) => setPort(e.target.value)}
+            onChange={e => setPort(e.target.value)}
             value={port}
           />
         </div>
       </Toolbar>
-      <Container>
-        <WaterfallItems>
-          {items.map((item, idx) => (
-            <WaterfallItem
-              key={idx}
-              item={item}
-              zoomFactor={zoomFactor}
-              start={start}
-              previousItem={items[idx - 1]}
-            />
-          ))}
-        </WaterfallItems>
-      </Container>
+      {!!data.length && (
+        <Container>
+          <WaterfallItems>
+            {data.map((item, idx) => (
+              <WaterfallItem
+                key={idx}
+                item={item}
+                zoomFactor={zoomFactor}
+                start={start}
+                previousItem={data[idx - 1]}
+              />
+            ))}
+          </WaterfallItems>
+        </Container>
+      )}
+      {!data.length && <NoData error={fetchError} port={port} />}
     </Root>
   );
 }
