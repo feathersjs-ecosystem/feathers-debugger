@@ -1,13 +1,19 @@
 {
-  "manifest_version": 2,
-  "name": "Feathers Debugger",
-  "description": "This extension debugs feathers requests",
-  "version": "1.1",
-  "browser_action": {
-    "default_icon": "logo.png"
+   "manifest_version":2,
+   "name":"Feathers Debugger",
+   "description":"Debug FeathersJS API requests, find bottlenecks, read payloads and understand how your API is queried.",
+   "version":"1.1",
+   "browser_action":{
+      "default_icon":"logo.png",
+      "default_popup": "popup.html"
    },
-  "devtools_page": "devtools.html",
-  "permissions": [
-    "storage"
-  ]
+   "icons":{
+      "16":"logo.png",
+      "48":"logo.png",
+      "128":"logo.png"
+   },
+   "devtools_page":"devtools.html",
+   "permissions":[
+      "storage"
+   ]
 }

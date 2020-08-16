@@ -1,15 +1,23 @@
 {
   "name": "feathers-debugger",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "FeathersJS Debugger Chrome Extension",
   "main": "src/index.html",
   "scripts": {
-    "dev": "parcel src/index.html --port 3000",
-    "build": "export NODE_ENV=production && parcel build src/index.html --no-source-maps --out-file devtools.html"
+    "dev": "parcel src/devtools.html --out-file devtools.html src/popup.html --port 3000",
+    "build": "export NODE_ENV=production && parcel --no-source-maps --out-file devtools.html build src/index.html src/popup.html"
   },
   "keywords": ["feathers", "feathersjs", "feathers-debugger", "chrome", "extension"],
   "author": "Dan Radenkovic",
   "license": "MIT",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/radenkovic/feathers-debugger.git"
+  },
+  "bugs": {
+    "url" : "https://github.com/radenkovic/feathers-debugger/issues",
+    "email" : "dan@radenkovic.org"
+  },
   "dependencies": {
     "lodash": "^4.17.20",
     "react": "^16.13.1",

@@ -123,7 +123,7 @@ const Toolbar = styled.div`
 const Container = styled.div`
   border: 1px solid ${p => p.theme.border};
   border-bottom: none;
-  overflow-x: overlay;
+  overflow-x: scroll;
   box-sizing: border-box;
   flex-grow: 1;
 `;

@@ -4,7 +4,7 @@ import theme from './theme';
 const GlobalStyle = createGlobalStyle`
   #app {
     display: flex;
-    min-height: 100vh;
+    height: 100vh;
     flex-direction: column;
   }
   body {
@@ -33,11 +33,11 @@ const GlobalStyle = createGlobalStyle`
   }
   
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 5px;
+    height: 5px;
   }
   ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: ${theme.background};
   }
   ::-webkit-scrollbar-thumb {
     background: #888;
