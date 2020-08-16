@@ -5,7 +5,7 @@
   "main": "src/index.html",
   "scripts": {
     "dev": "parcel src/devtools.html --out-file devtools.html src/popup.html --port 3000",
-    "build": "export NODE_ENV=production && parcel --no-source-maps --out-file devtools.html build src/index.html src/popup.html"
+    "build": "export NODE_ENV=production && parcel --no-source-maps build src/devtools.html src/popup.html"
   },
   "keywords": ["feathers", "feathersjs", "feathers-debugger", "chrome", "extension"],
   "author": "Dan Radenkovic",
