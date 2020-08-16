@@ -3,7 +3,7 @@ import stc from 'string-to-color';
 import styled from 'styled-components';
 
 const Root = styled.div`
-  padding: 8px 0;
+  padding: 4px 0;
   &:first-child {
     margin-top: 2px;
   }
