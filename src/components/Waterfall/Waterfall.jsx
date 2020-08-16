@@ -32,13 +32,16 @@ const PortInput = styled.input`
   font-weight: normal;
   height: 30px;
   border: 1px solid ${p => p.theme.border};
-  background: rgba(0, 0, 0, 0.03);
   border-radius: 3px;
   margin: 0;
   padding: 0 10px;
   width: 80px;
   outline: 0;
   font-weight: bold;
+  &:hover,
+  &:focus {
+    border-color: ${p => p.theme.primary};
+  }
 `;
 
 const BtnGroup = styled.div`

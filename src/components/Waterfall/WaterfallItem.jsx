@@ -72,12 +72,19 @@ export default function WaterfallItem({
   condensed,
   index,
 }) {
-  const prevOffset = previousItem ? item.ts - previousItem.ts : 0;
+  let prevOffset = 0;
+  if (previousItem && previousItem.end <= item.ts) {
+    prevOffset = item.ts - previousItem.end;
+  } else if (previousItem && previousItem.end > item.ts) {
+    prevOffset = item.ts - previousItem.ts;
+  }
+
   let gapWidth = (item.ts - start) * zoomFactor;
   if (condensed) {
     gapWidth = index * 10;
   }
 
+  const color = stc(item.path);
   return (
     <Root>
       <Gap style={{ width: gapWidth }} />
@@ -85,12 +92,12 @@ export default function WaterfallItem({
         <DurationBar
           style={{
             width: item.duration * zoomFactor,
-            background: stc(item.path),
+            background: color,
           }}
         />
         <Method method={item.method}>{item.method}</Method>
         {item.path}
-        <Duration>{item.duration}ms</Duration>
+        <Duration style={{ color }}>{item.duration}ms</Duration>
         {previousItem && <small>+{prevOffset}ms</small>}
       </Item>
     </Root>
