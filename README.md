@@ -18,6 +18,9 @@ Debug FeathersJS API requests, find bottlenecks, read payloads and understand ho
 
 Note: this will be npm package. For now you can install it manually.
 
+Extension is pending Google review (on Google Store), until then you can download it from [releases](https://github.com/radenkovic/feathers-debugger/releases).
+
+
 
 Create hook that will write file `feathers-debugger` to public folder.
 
@@ -93,6 +96,8 @@ module.exports = {
 5. Open devtools and click "Feathers" tab
 
 Happy debugging!
+
+
 
 
 
