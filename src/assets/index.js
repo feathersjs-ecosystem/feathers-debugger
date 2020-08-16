@@ -6,6 +6,7 @@ import TailDisabled from './eye-o.svg';
 import Trash from './trash.svg';
 import ErrorTriangle from './error.svg';
 import ErrorColor from './error-color.svg';
+import Condensed from './condensed.svg';
 
 export {
   ZoomIn,
@@ -16,4 +17,5 @@ export {
   Trash,
   ErrorTriangle,
   ErrorColor,
+  Condensed,
 };

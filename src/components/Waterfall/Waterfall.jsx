@@ -17,6 +17,7 @@ import {
   TailDisabled,
   Trash,
   ErrorTriangle,
+  Condensed,
 } from '../../assets';
 
 const Root = styled.div`
@@ -43,7 +44,7 @@ const PortInput = styled.input`
 const BtnGroup = styled.div`
   display: flex;
   align-items: center;
-  margin: 0 10px;
+  margin: 0 5px;
   button {
     margin: 0;
     border-radius: 0;
@@ -86,7 +87,8 @@ const Btn = styled.button`
     css`
       background: ${x => x.theme.primary};
       color: white;
-      svg {
+      svg,
+      path {
         fill: #fff;
       }
     `}
@@ -149,6 +151,7 @@ const TIMEFRAMES = [10 / 60, 0.5, 1, 3, 15];
 export default function Waterfall() {
   const [port, setPort] = useState(localStorage.getItem('port') || 3030);
   const [items, setItems] = useState([]);
+  const [condensed, setCondensed] = useState(localStorage.getItem('condensed'));
   const [zoomFactor, setZoomFactor] = useState(1);
   const [fetchError, setFetchError] = useState(false);
   const [timeframe, setTimeframe] = useState(
@@ -197,11 +200,15 @@ export default function Waterfall() {
   useEffect(() => {
     if (!items.length) return;
     if (!autoZoom) return;
+    if (condensed) {
+      setZoomFactor(0.5);
+      return;
+    }
     const lastItem = items[items.length - 1];
     const pixls = lastItem.end - start;
     const zoomFct = (window.innerWidth / pixls) * 0.75; // 0.75 is correction factor
     setZoomFactor(zoomFct);
-  }, [items, autoZoom]) // eslint-disable-line
+  }, [items, autoZoom, condensed]);
 
   const setZoom = factor => () => {
     setAutozoom(false);
@@ -220,7 +227,8 @@ export default function Waterfall() {
     localStorage.setItem('timeframe', timeframe);
     localStorage.setItem('port', port);
     localStorage.setItem('tail', tail ? 'true' : '');
-  }, [timeframe, port, tail]);
+    localStorage.setItem('condensed', condensed ? 'true' : '');
+  }, [timeframe, port, tail, condensed]);
 
   useEffect(() => {
     clearTimeout(portTimeout);
@@ -238,6 +246,11 @@ export default function Waterfall() {
   const clear = () => () => {
     if (!data.length) return null;
     return setStartTs(data[data.length - 1].ts); // to last item
+  };
+
+  const toggleCondensed = () => {
+    setCondensed(!condensed);
+    setAutozoom(true);
   };
 
   return (
@@ -278,7 +291,17 @@ export default function Waterfall() {
             </Btn>
           </BtnGroup>
 
-          <BtnGroup data-tip="Look back timeframe (in minutes)">
+          <Btn
+            onClick={toggleCondensed}
+            active={!!condensed}
+            data-tip={
+              condensed ? 'Disable condensed view' : 'Enable condensed view'
+            }
+          >
+            <Condensed />
+          </Btn>
+
+          <BtnGroup data-tip="Lookback timeframe">
             {TIMEFRAMES.map(val => (
               <Btn
                 active={timeframe === val}
@@ -307,6 +330,8 @@ export default function Waterfall() {
           <WaterfallItems>
             {data.map((item, idx) => (
               <WaterfallItem
+                condensed={condensed}
+                index={idx}
                 key={idx}
                 item={item}
                 zoomFactor={zoomFactor}

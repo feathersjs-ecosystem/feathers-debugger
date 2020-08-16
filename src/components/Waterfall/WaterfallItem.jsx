@@ -4,6 +4,10 @@ import styled from 'styled-components';
 
 const Root = styled.div`
   padding: 8px 0;
+  &:first-child {
+    margin-top: 2px;
+  }
+  padding-top: 0;
   display: flex;
   border-bottom: 1px solid ${p => p.theme.border};
   transition: 0.3s background;
@@ -21,6 +25,7 @@ const Root = styled.div`
 
 const DurationBar = styled.div`
   height: 3px;
+  transform: translateY(-2px);
   transition: width 0.3s;
 `;
 
@@ -64,13 +69,18 @@ export default function WaterfallItem({
   zoomFactor,
   start,
   previousItem,
+  condensed,
+  index,
 }) {
   const prevOffset = previousItem ? item.ts - previousItem.ts : 0;
-  const gapWidth = item.ts - start;
+  let gapWidth = (item.ts - start) * zoomFactor;
+  if (condensed) {
+    gapWidth = index * 10;
+  }
 
   return (
     <Root>
-      <Gap style={{ width: gapWidth * zoomFactor }} />
+      <Gap style={{ width: gapWidth }} />
       <Item>
         <DurationBar
           style={{
