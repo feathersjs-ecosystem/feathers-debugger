@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import ReactTooltip from 'react-tooltip';
-import sortBy from 'lodash/fp/sortBy';
-import compose from 'lodash/fp/compose';
-import filter from 'lodash/fp/filter';
-import get from 'lodash/get';
-
+import packageJson from '../../../package.json';
 import WaterfallItem from './WaterfallItem';
 import NoData from './NoData';
 
@@ -162,7 +158,6 @@ export default function Waterfall() {
   );
   const [autoZoom, setAutozoom] = useState(true);
   const [tail, setTail] = useState(!!localStorage.getItem('tail') || false);
-  const [startTs, setStartTs] = useState(0);
 
   const toggleTail = val => {
     clearInterval(interval);
@@ -170,35 +165,29 @@ export default function Waterfall() {
     setTail(val);
   };
 
-  const fetchData = () =>
-    fetch(`http://localhost:${port}/feathers-debugger`)
-      .then(res => res.text())
+  const fetchData = () => {
+    const gt = Date.now() - timeframe * 1000 * 60; // timeframe from seconds to ms
+    return fetch(
+      `http://localhost:${port}/feathers-debugger?$sort[ts]=1&$limit=500&ts[$gt]=${gt}&$version=${packageJson.version}`
+    )
+      .then(res => res.json())
       .then(res => {
+        if (res.message) throw new Error(res.message);
         setFetchError(false);
-        const ARR = [];
-        res.split('\n').forEach(item => {
-          if (!item) return;
-          ARR.push(JSON.parse(item));
-        });
-        setItems(ARR);
+        setItems(res.data);
       })
-      .catch(() => {
-        setFetchError(true);
+      .catch(e => {
+        setFetchError(e.message);
       });
+  };
 
   useEffect(() => {
     fetchData();
   }, [timeframe]);
 
-  const data = compose(
-    sortBy('ts'),
-    filter(item => {
-      if (startTs >= item.ts) return false;
-      return item.ts > Date.now() - 1000 * 60 * timeframe;
-    })
-  )(items);
+  const data = items;
 
-  const start = get(data[0], 'ts', 0);
+  const start = data.length ? data[0].ts : 0;
 
   useEffect(() => {
     if (!items.length) return;
@@ -245,10 +234,12 @@ export default function Waterfall() {
   };
 
   // Filters
-
   const clear = () => () => {
-    if (!data.length) return null;
-    return setStartTs(data[data.length - 1].ts); // to last item
+    fetch(`http://localhost:${port}/feathers-debugger`, {
+      method: 'delete',
+    }).then(() => {
+      setItems([]);
+    });
   };
 
   const toggleCondensed = () => {

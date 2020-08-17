@@ -29,12 +29,20 @@ export default function NoData({ error, port }) {
           </>
         )}
         <h1>{error ? 'Error' : 'No Data'}</h1>
-        {error && (
+        {error === 'Failed to fetch' && (
           <p>
             Feathers debugger <strong>not found</strong> on{' '}
             <a href={`http://localhost:${port}/feathers-debugger`}>
               http://localhost:{port}/feathers-debugger
             </a>
+          </p>
+        )}
+        {error === 'version-not-supported' && (
+          <p>
+            <strong>Feathers Debugger extension is outdated.</strong>
+            <br />
+            Please update Feathers debugger extension and feathers debugger
+            service.
           </p>
         )}
         <p>

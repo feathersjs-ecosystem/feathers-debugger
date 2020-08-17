@@ -1,6 +1,7 @@
 import React from 'react';
 import stc from 'string-to-color';
 import styled from 'styled-components';
+import ms from 'ms';
 
 const Root = styled.div`
   padding: 4px 0;
@@ -98,7 +99,7 @@ export default function WaterfallItem({
         <Method method={item.method}>{item.method}</Method>
         {item.path}
         <Duration style={{ color }}>{item.duration}ms</Duration>
-        {previousItem && <small>+{prevOffset}ms</small>}
+        {previousItem && <small>+{ms(prevOffset)}</small>}
       </Item>
     </Root>
   );
