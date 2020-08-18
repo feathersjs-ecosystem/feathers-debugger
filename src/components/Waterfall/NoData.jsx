@@ -46,8 +46,15 @@ export default function NoData({ error, port }) {
           </p>
         )}
         <p>
-          Make sure you installed Feathers Debugger hook in{' '}
-          <code>app.hooks</code>.
+          Make sure you installed and configured{' '}
+          <a
+            href="https://www.npmjs.com/package/feathers-debugger-service"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Debugger Service
+          </a>{' '}
+          on your server.
           <br />
           Read documentation{' '}
           <a
@@ -57,7 +64,7 @@ export default function NoData({ error, port }) {
           >
             here
           </a>{' '}
-          on how to configure FeathersJS Debugger.
+          on how to configure Feathers debugger.
         </p>
       </div>
     </Root>

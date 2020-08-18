@@ -7,6 +7,7 @@ const GlobalStyle = createGlobalStyle`
     height: 100vh;
     flex-direction: column;
   }
+
   body {
     margin: 0;
     padding: 0;
@@ -15,11 +16,13 @@ const GlobalStyle = createGlobalStyle`
     color: ${theme.text};
     font-size: 16px;
   }
+
   a {
     color: ${theme.primary};
     text-decoration: none;
     border-bottom: 1px dotted ${theme.primary};
   }
+
   code {
     font-family: sans-serif;
     background: ${theme.background};
@@ -27,9 +30,15 @@ const GlobalStyle = createGlobalStyle`
     border-radius: 6px;
     color: ${theme.primary};
   }
+
   button {
     outline: 0;
     cursor: pointer;
+  }
+  
+  .tooltip {
+    font-size: 12px;
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
   }
   
   ::-webkit-scrollbar {

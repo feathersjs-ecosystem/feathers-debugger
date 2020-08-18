@@ -69,11 +69,11 @@ const Btn = styled.button`
   justify-content: center;
   margin-left: 5px;
   border-radius: 6px;
-  min-width: 28px;
-  padding: 0 10px;
+  min-width: 26px;
+  padding: 0 8px;
   flex-shrink: 0;
   height: 35px;
-  font-size: 11px;
+  font-size: 10.5px;
   &:active {
     background: ${p => p.theme.primary};
     color: white;
@@ -86,6 +86,8 @@ const Btn = styled.button`
     css`
       background: ${x => x.theme.primary};
       color: white;
+      display: block;
+
       svg,
       path {
         fill: #fff;
@@ -106,7 +108,7 @@ const Title = styled.div`
 `;
 
 const Toolbar = styled.div`
-  padding: 10px;
+  padding: 8px;
   border: 1px solid ${p => p.theme.border};
   border-bottom: none;
   display: flex;
@@ -122,11 +124,10 @@ const Toolbar = styled.div`
 `;
 
 const Container = styled.div`
-  border: 1px solid ${p => p.theme.border};
-  border-bottom: none;
   overflow-x: scroll;
   box-sizing: border-box;
   flex-grow: 1;
+  margin-top: -2px;
 `;
 
 const WaterfallItems = styled.div`
@@ -145,7 +146,7 @@ const ErrorIcon = styled(ErrorTriangle)`
 let interval;
 let portTimeout;
 
-const TIMEFRAMES = [10 / 60, 0.5, 1, 3, 15];
+const TIMEFRAMES = [10 / 60, 30 / 60, 5, 15];
 
 export default function Waterfall() {
   const [port, setPort] = useState(localStorage.getItem('port') || 3030);
@@ -153,11 +154,13 @@ export default function Waterfall() {
   const [condensed, setCondensed] = useState(localStorage.getItem('condensed'));
   const [zoomFactor, setZoomFactor] = useState(1);
   const [fetchError, setFetchError] = useState(false);
+  const [stats, setStats] = useState({});
   const [timeframe, setTimeframe] = useState(
-    Number(localStorage.getItem('timeframe')) || 3
+    Number(localStorage.getItem('timeframe')) || TIMEFRAMES[2]
   );
   const [autoZoom, setAutozoom] = useState(true);
   const [tail, setTail] = useState(!!localStorage.getItem('tail') || false);
+  const [percentile, setPercentile] = useState();
 
   const toggleTail = val => {
     clearInterval(interval);
@@ -175,6 +178,7 @@ export default function Waterfall() {
         if (res.message) throw new Error(res.message);
         setFetchError(false);
         setItems(res.data);
+        setStats(res.stats);
       })
       .catch(e => {
         setFetchError(e.message);
@@ -193,12 +197,12 @@ export default function Waterfall() {
     if (!items.length) return;
     if (!autoZoom) return;
     if (condensed) {
-      setZoomFactor(0.5);
+      setZoomFactor(0.6);
       return;
     }
     const lastItem = items[items.length - 1];
     const pixls = lastItem.end - start;
-    const zoomFct = (window.innerWidth / pixls) * 0.75; // 0.75 is correction factor
+    const zoomFct = (window.innerWidth / pixls) * 0.8; // 0.8 is correction factor
     setZoomFactor(zoomFct);
   }, [items, autoZoom, condensed]);
 
@@ -246,6 +250,8 @@ export default function Waterfall() {
     setCondensed(!condensed);
     setAutozoom(true);
   };
+
+  const gte = stats[percentile] || 0;
 
   return (
     <Root>
@@ -306,6 +312,24 @@ export default function Waterfall() {
               </Btn>
             ))}
           </BtnGroup>
+          {stats && (
+            <BtnGroup>
+              <Btn
+                data-tip="Highlight top 10% slow queries"
+                active={percentile === 'p90'}
+                onClick={() => setPercentile(percentile === 'p90' ? 0 : 'p90')}
+              >
+                p90
+              </Btn>
+              <Btn
+                data-tip="Highlight top 5% slow queries"
+                active={percentile === 'p95'}
+                onClick={() => setPercentile(percentile === 'p95' ? 0 : 'p95')}
+              >
+                p95
+              </Btn>
+            </BtnGroup>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           {fetchError && (
@@ -326,11 +350,12 @@ export default function Waterfall() {
               <WaterfallItem
                 condensed={condensed}
                 index={idx}
-                key={idx}
+                key={`${item._id}`}
                 item={item}
                 zoomFactor={zoomFactor}
                 start={start}
                 previousItem={data[idx - 1]}
+                opacity={item.duration > gte ? 1 : 0.2}
               />
             ))}
           </WaterfallItems>
