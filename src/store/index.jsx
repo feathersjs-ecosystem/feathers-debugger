@@ -22,12 +22,11 @@ try {
 
 export const initialState = {
   appVersion: packageJson.version,
-  url: cache.url || 'http://localhost:3000',
+  url: cache.url || 'http://localhost:3030',
   data: [],
   zoomFactor: 1,
   pollInterval: 1500,
   timeframes: [10 / 60, 30 / 60, 5, 15],
-  port: 3030,
   autoZoom: cache.autoZoom || true,
   condensed: cache.condensed || false,
   timeframe: cache.timeframe || 5,
@@ -35,6 +34,8 @@ export const initialState = {
   tail: cache.tail || true,
   fetchError: null,
   stats: undefined,
+  settingsOpen: true,
+  protocol: cache.protocol || 'http',
 };
 
 let timeout;
@@ -53,19 +54,20 @@ const updateCache = state => {
           condensed: state.condensed,
           timeframe: state.timeframe,
           tail: state.tail,
+          protocol: state.protocol,
         })
       );
     } catch (e) {
       // NO_OP
       console.log('Error updating cache', e.message);
     }
-  }, 750);
+  }, 500);
 };
 
-export function updateContext(update) {
+export function updateContext(update, cb) {
   this.setState(currentState => {
     const newState = { ...currentState, ...update };
-    updateCache(newState);
+    updateCache(newState, cb);
     return update;
   });
 }

@@ -17,6 +17,11 @@ const GlobalStyle = createGlobalStyle`
     font-size: 16px;
   }
 
+  * {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+  }
+
   a {
     color: ${theme.primary};
     text-decoration: none;
@@ -34,6 +39,15 @@ const GlobalStyle = createGlobalStyle`
   button {
     outline: 0;
     cursor: pointer;
+    border: 0;
+    margin: 0;
+    background: none;
+    padding: 5px;
+    color: ${theme.light};
+  }
+  
+  input {
+    color: ${theme.text};
   }
   
   .tooltip {
