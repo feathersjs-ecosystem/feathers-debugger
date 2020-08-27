@@ -247,7 +247,7 @@ function Waterfall() {
     });
   };
 
-  const gte = stats[percentile] || 0;
+  const gte = stats ? stats[percentile] || 0 : 0;
 
   return (
     <Root>
@@ -355,7 +355,7 @@ function Waterfall() {
                 zoomFactor={zoomFactor}
                 start={start}
                 previousItem={data[idx - 1]}
-                opacity={item.duration > gte ? 1 : 0.2}
+                opacity={item.duration >= gte ? 1 : 0.2}
               />
             ))}
           </WaterfallItems>

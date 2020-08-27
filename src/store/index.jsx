@@ -34,7 +34,7 @@ export const initialState = {
   percentile: undefined,
   tail: cache.tail || true,
   fetchError: null,
-  stats: {},
+  stats: undefined,
 };
 
 let timeout;
