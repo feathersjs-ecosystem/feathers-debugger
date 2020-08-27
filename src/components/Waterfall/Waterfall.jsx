@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import ReactTooltip from 'react-tooltip';
 import packageJson from '../../../package.json';
 import WaterfallItem from './WaterfallItem';
+import AppContext from '../../store/index';
 import NoData from './NoData';
 
 import {
@@ -146,27 +147,23 @@ const ErrorIcon = styled(ErrorTriangle)`
 let interval;
 let portTimeout;
 
-const TIMEFRAMES = [10 / 60, 30 / 60, 5, 15];
-
-export default function Waterfall() {
-  const [port, setPort] = useState(localStorage.getItem('port') || 3030);
-  const [items, setItems] = useState([]);
-  const [condensed, setCondensed] = useState(localStorage.getItem('condensed'));
-  const [zoomFactor, setZoomFactor] = useState(1);
-  const [fetchError, setFetchError] = useState(false);
-  const [stats, setStats] = useState({});
-  const [timeframe, setTimeframe] = useState(
-    Number(localStorage.getItem('timeframe')) || TIMEFRAMES[2]
-  );
-  const [autoZoom, setAutozoom] = useState(true);
-  const [tail, setTail] = useState(!!localStorage.getItem('tail') || false);
-  const [percentile, setPercentile] = useState();
-
-  const toggleTail = val => {
-    clearInterval(interval);
-    if (val) setAutozoom(true);
-    setTail(val);
-  };
+function Waterfall() {
+  const ctx = useContext(AppContext);
+  console.log('Ctx Rerender', ctx);
+  const {
+    port,
+    timeframes,
+    timeframe,
+    zoomFactor,
+    condensed,
+    autoZoom,
+    percentile,
+    tail,
+    data,
+    stats,
+    fetchError,
+    pollInterval,
+  } = ctx;
 
   const fetchData = () => {
     const gt = Date.now() - timeframe * 1000 * 60; // timeframe from seconds to ms
@@ -176,12 +173,19 @@ export default function Waterfall() {
       .then(res => res.json())
       .then(res => {
         if (res.message) throw new Error(res.message);
-        setFetchError(false);
-        setItems(res.data);
-        setStats(res.stats);
+        // TODO: this is not working when triggered from setInterval
+        if (res.data.length && res.data.length === data.length) {
+          const [lastOldItem] = data.slice(-1);
+          const [lastNewItem] = res.data.slice(-1);
+          // Skip updates if last timestamp is unchanged
+          if (lastNewItem.ts === lastOldItem.ts) return;
+        }
+        // Skip update if no data
+        if (!res.data.length && !data.length && !fetchError) return;
+        ctx.update({ data: res.data, stats: res.stats, fetchError: null });
       })
       .catch(e => {
-        setFetchError(e.message);
+        ctx.update({ fetchError: e.message });
       });
   };
 
@@ -189,26 +193,22 @@ export default function Waterfall() {
     fetchData();
   }, [timeframe]);
 
-  const data = items;
-
   const start = data.length ? data[0].ts : 0;
-
   useEffect(() => {
-    if (!items.length) return;
+    if (!data.length) return;
     if (!autoZoom) return;
     if (condensed) {
-      setZoomFactor(0.6);
+      ctx.update({ zoomFactor: 0.6 });
       return;
     }
-    const lastItem = items[items.length - 1];
+    const lastItem = data[data.length - 1];
     const pixls = lastItem.end - start;
     const zoomFct = (window.innerWidth / pixls) * 0.8; // 0.8 is correction factor
-    setZoomFactor(zoomFct);
-  }, [items, autoZoom, condensed]);
+    ctx.update({ zoomFactor: zoomFct });
+  }, [data, autoZoom, condensed]);
 
   const setZoom = factor => () => {
-    setAutozoom(false);
-    setZoomFactor(factor);
+    ctx.update({ autoZoom: false, zoomFactor: factor });
   };
 
   useEffect(() => {
@@ -216,15 +216,8 @@ export default function Waterfall() {
     if (!tail) return;
     interval = setInterval(() => {
       fetchData();
-    }, 1500);
-  }, [tail, timeframe, port]);
-
-  useEffect(() => {
-    localStorage.setItem('timeframe', timeframe);
-    localStorage.setItem('port', port);
-    localStorage.setItem('tail', tail ? 'true' : '');
-    localStorage.setItem('condensed', condensed ? 'true' : '');
-  }, [timeframe, port, tail, condensed]);
+    }, pollInterval);
+  }, [tail, timeframe, port, data]);
 
   useEffect(() => {
     clearTimeout(portTimeout);
@@ -233,22 +226,25 @@ export default function Waterfall() {
     }, 500);
   }, [port]);
 
-  const updateTimeframe = val => () => {
-    setTimeframe(val);
+  // Action Handlers
+  const updateTimeframe = val => () => ctx.update({ timeframe: val });
+
+  const toggleTail = val => {
+    clearInterval(interval);
+    if (val) ctx.update({ autoZoom: true });
+    ctx.update({ tail: val });
   };
+
+  const toggleCondensed = () =>
+    ctx.update({ condensed: !condensed, autoZoom: true });
 
   // Filters
   const clear = () => () => {
     fetch(`http://localhost:${port}/feathers-debugger`, {
       method: 'delete',
     }).then(() => {
-      setItems([]);
+      ctx.update({ data: [] });
     });
-  };
-
-  const toggleCondensed = () => {
-    setCondensed(!condensed);
-    setAutozoom(true);
   };
 
   const gte = stats[percentile] || 0;
@@ -280,7 +276,7 @@ export default function Waterfall() {
               <ZoomIn />
             </Btn>
             <Btn
-              onClick={() => setAutozoom(true)}
+              onClick={() => ctx.update({ autoZoom: true })}
               active={autoZoom}
               data-tip="Auto zoom"
             >
@@ -302,7 +298,7 @@ export default function Waterfall() {
           </Btn>
 
           <BtnGroup data-tip="Lookback timeframe">
-            {TIMEFRAMES.map(val => (
+            {timeframes.map(val => (
               <Btn
                 active={timeframe === val}
                 key={val}
@@ -317,14 +313,18 @@ export default function Waterfall() {
               <Btn
                 data-tip="Highlight top 10% slow queries"
                 active={percentile === 'p90'}
-                onClick={() => setPercentile(percentile === 'p90' ? 0 : 'p90')}
+                onClick={() =>
+                  ctx.update({ percentile: percentile === 'p90' ? 0 : 'p90' })
+                }
               >
                 p90
               </Btn>
               <Btn
                 data-tip="Highlight top 5% slow queries"
                 active={percentile === 'p95'}
-                onClick={() => setPercentile(percentile === 'p95' ? 0 : 'p95')}
+                onClick={() =>
+                  ctx.update({ percentile: percentile === 'p95' ? 0 : 'p95' })
+                }
               >
                 p95
               </Btn>
@@ -338,7 +338,7 @@ export default function Waterfall() {
           <PortInput
             data-tip="Feathers port (only localhost)"
             type="number"
-            onChange={e => setPort(e.target.value)}
+            onChange={e => ctx.update({ port: e.target.value })}
             value={port}
           />
         </div>
@@ -365,3 +365,5 @@ export default function Waterfall() {
     </Root>
   );
 }
+
+export default Waterfall;
