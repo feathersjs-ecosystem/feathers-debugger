@@ -22,7 +22,7 @@ try {
 
 export const initialState = {
   appVersion: packageJson.version,
-  url: cache.url || 'http://localhost:3030',
+  url: cache.url || 'localhost:3030',
   data: [],
   zoomFactor: 1,
   pollIntervals: [500, 1000, 2000, 5000, 10000, 15000, 60000],
