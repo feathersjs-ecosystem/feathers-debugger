@@ -39,5 +39,6 @@ module.exports = {
     'react/jsx-curly-newline': 0,
     'no-param-reassign': 0,
     camelcase: 0,
+    'no-underscore-dangle': 0,
   },
 };

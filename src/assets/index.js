@@ -7,6 +7,8 @@ import Trash from './trash.svg';
 import ErrorTriangle from './error.svg';
 import ErrorColor from './error-color.svg';
 import Condensed from './condensed.svg';
+import Settings from './settings.svg';
+import Check from './check.svg';
 
 export {
   ZoomIn,
@@ -18,4 +20,6 @@ export {
   ErrorTriangle,
   ErrorColor,
   Condensed,
+  Settings,
+  Check,
 };

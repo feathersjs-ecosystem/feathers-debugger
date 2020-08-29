@@ -2,6 +2,8 @@ import React from 'react';
 import stc from 'string-to-color';
 import styled from 'styled-components';
 import ms from 'ms';
+import ReactTooltip from 'react-tooltip';
+import { ErrorTriangle } from '../../assets';
 
 const Root = styled.div`
   padding: 4px 0;
@@ -10,8 +12,8 @@ const Root = styled.div`
   }
   padding-top: 0;
   display: flex;
-  border-bottom: 1px solid ${p => p.theme.border};
-  transition: 0.3s background;
+  border-top: 1px solid ${p => p.theme.border};
+  transition: 0.3s background, opacity 0.3s;
   &:hover {
     background: ${p => p.theme.background};
     cursor: pointer;
@@ -60,6 +62,13 @@ const Method = styled.div`
     `color: ${p.theme.methods[p.method] || p.theme.methods.default};`}
 `;
 
+const RequestError = styled(ErrorTriangle)`
+  width: 9px;
+  height: 9px;
+  margin-right: 3px;
+  fill: ${p => p.theme.danger};
+`;
+
 const Gap = styled.div`
   transition: width 0.3s;
   animation: fadeIn 1s;
@@ -72,6 +81,7 @@ export default function WaterfallItem({
   previousItem,
   condensed,
   index,
+  opacity,
 }) {
   let prevOffset = 0;
   if (previousItem && previousItem.end <= item.ts) {
@@ -87,7 +97,16 @@ export default function WaterfallItem({
 
   const color = stc(item.path);
   return (
-    <Root>
+    <Root style={{ opacity }}>
+      <ReactTooltip
+        delayShow={200}
+        place="bottom"
+        type="dark"
+        effect="solid"
+        id="item-tooltip"
+        className="tooltip"
+      />
+
       <Gap style={{ width: gapWidth }} />
       <Item>
         <DurationBar
@@ -96,6 +115,9 @@ export default function WaterfallItem({
             background: color,
           }}
         />
+        {item.error && (
+          <RequestError data-tip={item.error} data-for="item-tooltip" />
+        )}
         <Method method={item.method}>{item.method}</Method>
         {item.path}
         <Duration style={{ color }}>{item.duration}ms</Duration>

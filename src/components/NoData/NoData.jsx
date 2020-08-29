@@ -15,7 +15,7 @@ const Root = styled.div`
   }
 `;
 
-export default function NoData({ error, port }) {
+export default function NoData({ error, url, protocol }) {
   return (
     <Root>
       <div>
@@ -32,8 +32,12 @@ export default function NoData({ error, port }) {
         {error === 'Failed to fetch' && (
           <p>
             Feathers debugger <strong>not found</strong> on{' '}
-            <a href={`http://localhost:${port}/feathers-debugger`}>
-              http://localhost:{port}/feathers-debugger
+            <a
+              href={`${protocol}://${url}/feathers-debugger`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {protocol}://{url}/feathers-debugger
             </a>
           </p>
         )}
@@ -46,8 +50,15 @@ export default function NoData({ error, port }) {
           </p>
         )}
         <p>
-          Make sure you installed Feathers Debugger hook in{' '}
-          <code>app.hooks</code>.
+          Make sure you installed and configured{' '}
+          <a
+            href="https://www.npmjs.com/package/feathers-debugger-service"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Debugger Service
+          </a>{' '}
+          on your server.
           <br />
           Read documentation{' '}
           <a
@@ -57,7 +68,7 @@ export default function NoData({ error, port }) {
           >
             here
           </a>{' '}
-          on how to configure FeathersJS Debugger.
+          on how to configure Feathers debugger.
         </p>
       </div>
     </Root>
