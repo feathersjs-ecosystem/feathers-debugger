@@ -53,7 +53,6 @@ function Waterfall() {
 
   const fetchData = () => {
     const gt = Date.now() - timeframe * 1000 * 60; // timeframe from seconds to ms
-    console.log('NOW');
     return fetch(
       `${baseUrl}?$sort[ts]=1&$limit=500&ts[$gt]=${gt}&$version=${packageJson.version}`
     )
@@ -257,7 +256,9 @@ function Waterfall() {
             </WaterfallItems>
           </Container>
         )}
-        {!data.length && <NoData error={fetchError} url={url} />}
+        {!data.length && (
+          <NoData error={fetchError} url={url} protocol={protocol} />
+        )}
       </Root>
       {/* Modals */}
       {settingsPane && (

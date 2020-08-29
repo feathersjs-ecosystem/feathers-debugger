@@ -15,7 +15,7 @@ const Root = styled.div`
   }
 `;
 
-export default function NoData({ error, url }) {
+export default function NoData({ error, url, protocol }) {
   return (
     <Root>
       <div>
@@ -32,7 +32,13 @@ export default function NoData({ error, url }) {
         {error === 'Failed to fetch' && (
           <p>
             Feathers debugger <strong>not found</strong> on{' '}
-            <a href={`${url}/feathers-debugger`}>{url}/feathers-debugger</a>
+            <a
+              href={`${protocol}://${url}/feathers-debugger`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {protocol}://{url}/feathers-debugger
+            </a>
           </p>
         )}
         {error === 'version-not-supported' && (
