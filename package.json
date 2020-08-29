@@ -1,6 +1,6 @@
 {
   "name": "feathers-debugger",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "FeathersJS Debugger Chrome Extension",
   "main": "src/index.html",
   "scripts": {
