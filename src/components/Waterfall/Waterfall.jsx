@@ -45,7 +45,7 @@ function Waterfall() {
     stats,
     fetchError,
     pollInterval,
-    settingsOpen,
+    settingsPane,
     protocol,
   } = ctx;
 
@@ -53,6 +53,7 @@ function Waterfall() {
 
   const fetchData = () => {
     const gt = Date.now() - timeframe * 1000 * 60; // timeframe from seconds to ms
+    console.log('NOW');
     return fetch(
       `${baseUrl}?$sort[ts]=1&$limit=500&ts[$gt]=${gt}&$version=${packageJson.version}`
     )
@@ -103,7 +104,7 @@ function Waterfall() {
     interval = setInterval(() => {
       fetchData();
     }, pollInterval);
-  }, [tail, timeframe, url, data, protocol]);
+  }, [tail, timeframe, url, data, protocol, pollInterval]);
 
   // Action Handlers
   const updateTimeframe = val => () => ctx.update({ timeframe: val });
@@ -119,7 +120,7 @@ function Waterfall() {
 
   const toggleSettings = e => {
     if (e) e.stopPropagation();
-    ctx.update({ settingsOpen: !settingsOpen });
+    ctx.update({ settingsPane: !settingsPane });
   };
   // Filters
   const clear = () => () => {
@@ -229,8 +230,9 @@ function Waterfall() {
             </div>
 
             <Btn
+              data-delay-show={1000}
               data-tip="Settings"
-              active={settingsOpen}
+              active={settingsPane}
               onClick={toggleSettings}
             >
               <SettingsIcon />
@@ -258,7 +260,7 @@ function Waterfall() {
         {!data.length && <NoData error={fetchError} url={url} />}
       </Root>
       {/* Modals */}
-      {settingsOpen && (
+      {settingsPane && (
         <Settings close={toggleSettings} ctx={ctx} fetchData={fetchData} />
       )}
     </>

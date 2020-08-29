@@ -5,7 +5,9 @@
   "main": "src/index.html",
   "scripts": {
     "dev": "parcel src/devtools.html --out-dir build/output --cache-dir build/cache src/popup.html --port 3000",
-    "build": "export NODE_ENV=production && parcel --cache-dir build/cache --no-source-maps build src/devtools.html src/popup.html"
+    "build": "export NODE_ENV=production && parcel --cache-dir build/cache --no-source-maps build src/devtools.html src/popup.html",
+    "lint": "eslint ./src",
+    "depcheck": "depcheck"
   },
   "keywords": [
     "feathers",
@@ -35,10 +37,10 @@
   "devDependencies": {
     "@svgr/parcel-plugin-svgr": "^5.4.0",
     "babel-eslint": "^10.1.0",
+    "depcheck": "^1.2.0",
     "eslint": "^7.7.0",
     "eslint-config-airbnb": "^18.2.0",
     "eslint-config-prettier": "^6.11.0",
-    "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jest": "^23.20.0",
     "eslint-plugin-jsx-a11y": "^6.3.1",

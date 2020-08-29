@@ -1,156 +1,43 @@
-import React, { useEffect } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { Settings as SettingsIcon } from '../../assets';
+import React, { useEffect, useState } from 'react';
+import ms from 'ms';
+import ReactTooltip from 'react-tooltip';
+import packageJson from '../../../package.json';
+import {
+  Settings as SettingsIcon,
+  Check,
+  ErrorTriangle,
+  Sync,
+} from '../../assets';
 
-const Root = styled.div``;
-
-const fadeInAnimation = keyframes`
-  from {opacity: 0}
-`;
-
-const slideRight = keyframes`
-  from {transform: translateX(500px); opacity: 0.5};
-`;
-
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: ${p => p.theme.modalOverlay};
-  z-index: 10;
-  cursor: pointer;
-  animation: ${fadeInAnimation} 0.2s;
-`;
-
-const Modal = styled.div`
-  position: fixed;
-  top: 0;
-  right: 0;
-  min-width: 300px;
-  background: white;
-  height: 100vh;
-  z-index: 11;
-  display: flex;
-  box-shadow: -10px 10px 20px #3f2b66, 10px -10px 20px #734db8;
-  animation: ${slideRight} 0.3s;
-  animation-fill-mode: forwards;
-  flex-direction: column;
-`;
-
-const ModalHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 7.5px 10px;
-  border-bottom: 1px solid ${p => p.theme.border};
-`;
-
-const Title = styled.h1`
-  font-size: 13px;
-  line-height: 1;
-  font-weight: 600;
-  color: ${p => p.theme.text};
-  display: flex;
-  align-items: center;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-
-  svg {
-    margin-right: 10px;
-    width: 16px;
-    height: 16px;
-    path {
-      fill: ${p => p.theme.light};
-    }
-  }
-`;
-
-const ModalBody = styled.div`
-  flex-grow: 1;
-  overflow-y: auto;
-  padding: 20px 10px;
-`;
-
-const Close = styled.button`
-  font-size: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
-  transition: background 0.1s;
-  &:hover {
-    background: ${p => p.theme.background};
-    color: ${p => p.theme.primary};
-  }
-`;
-
-export const UrlInput = styled.input`
-  font-size: 15px;
-  height: 30px;
-  border: 1px solid ${p => p.theme.border};
-  border-radius: 3px;
-  margin: 0;
-  padding: 0 10px;
-  height: 35px;
-  outline: 0;
-  font-weight: bold;
-  transition: 0.4s border;
-  display: inline-block;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  &:focus,
-  &:hover {
-    border-color: ${p => p.theme.primary};
-  }
-`;
-
-const Label = styled.label`
-  display: block;
-  font-size: 12px;
-  color: ${p => p.theme.light};
-  margin-bottom: 3px;
-`;
-
-const Protocol = styled.button`
-  display: inline-block;
-  color: ${p => p.theme.primary};
-  border: 1px solid ${p => p.theme.border};
-  height: 35px;
-  padding: 0 5px;
-  font-weight: bold;
-  display: flex;
-  flex-shrink: 0;
-  font-size: 10px;
-  font-weight: bold;
-  width: 45px;
-  border-right: 1px solid transparent;
-  align-items: center;
-  justify-content: center;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  &:hover {
-    background: ${p => p.theme.background};
-    border-color: ${p => p.theme.primary};
-  }
-`;
-
-const UrlInputContainer = styled.div`
-  display: flex;
-  align-items: center;
-`;
+import {
+  Root,
+  Overlay,
+  Modal,
+  ModalHeader,
+  Title,
+  ModalBody,
+  Close,
+  UrlInput,
+  Label,
+  Protocol,
+  UrlInputContainer,
+  Group,
+  Btn,
+  BtnGroup,
+  Footer,
+  ConnectionState,
+} from './SettingsStyles';
 
 let settingsDebounce;
 
 export default function Settings({ close, ctx, fetchData }) {
-  const { url, protocol } = ctx;
+  const { url, protocol, pollInterval, pollIntervals, fetchError } = ctx;
+  const [loading, setLoading] = useState(0);
 
   // Refetch on settings change
   useEffect(() => {
     clearTimeout(settingsDebounce);
+    setLoading(1);
     settingsDebounce = setTimeout(() => {
       // Sanitize fields
       let sanitizedUrl = url;
@@ -170,15 +57,28 @@ export default function Settings({ close, ctx, fetchData }) {
         sanitizedProtocol = 'https';
       }
       ctx.update({ url: sanitizedUrl, protocol: sanitizedProtocol }, fetchData);
+      setLoading(0);
     }, 500);
-  }, [url, protocol]);
+    return () => clearTimeout(settingsDebounce);
+  }, [url, protocol, pollInterval]);
 
   const changeProtocol = () => {
     ctx.update({ protocol: protocol === 'http' ? 'https' : 'http' });
   };
 
+  const changePollInterval = val => () => {
+    ctx.update({ pollInterval: val });
+  };
+
   return (
     <Root>
+      <ReactTooltip
+        delayShow={550}
+        place="bottom"
+        type="dark"
+        effect="solid"
+        id="settings-tooltip"
+      />
       <Overlay onClick={close} />
       <Modal>
         <ModalHeader>
@@ -189,17 +89,66 @@ export default function Settings({ close, ctx, fetchData }) {
           <Close onClick={close}>&times;</Close>
         </ModalHeader>
         <ModalBody>
-          <Label>Server URL:</Label>
-          <UrlInputContainer>
-            <Protocol onClick={changeProtocol}>{protocol}</Protocol>
-            <UrlInput
-              data-tip="Feathers Server URL (without trailing slash and /feathers-debugger)"
-              type="url"
-              onChange={e => ctx.update({ url: e.target.value })}
-              value={url}
-            />
-          </UrlInputContainer>
+          <Group>
+            <Label>Server URL:</Label>
+            <UrlInputContainer>
+              <Protocol
+                data-for="settings-tooltip"
+                data-tip="Protocol (http or https)"
+                onClick={changeProtocol}
+              >
+                {protocol}
+              </Protocol>
+              <UrlInput
+                data-multiline
+                data-for="settings-tooltip"
+                data-tip="Feathers Server URL <br/> Without trailing slash and /feathers-debugger"
+                type="url"
+                onChange={e => ctx.update({ url: e.target.value })}
+                value={url}
+              />
+              <ConnectionState
+                error={fetchError || 0}
+                loading={loading}
+                data-for="settings-tooltip"
+                data-tip="Connnection state"
+              >
+                {fetchError && !loading && <ErrorTriangle />}
+                {!fetchError && !loading && <Check />}
+                {loading === 1 && <Sync />}
+              </ConnectionState>
+            </UrlInputContainer>
+          </Group>
+
+          <Group>
+            <Label>Poll Interval:</Label>
+            <BtnGroup
+              style={{ margin: 0 }}
+              data-for="settings-tooltip"
+              data-tip="How often to refresh data, only used in watch mode."
+            >
+              {pollIntervals.map(int => (
+                <Btn
+                  key={int}
+                  onClick={changePollInterval(int)}
+                  active={pollInterval === int}
+                >
+                  {ms(int)}
+                </Btn>
+              ))}
+            </BtnGroup>
+          </Group>
         </ModalBody>
+        <Footer>
+          <a
+            href="https://github.com/radenkovic/feathers-debugger"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Feathers Debugger
+          </a>{' '}
+          v{packageJson.version}
+        </Footer>
       </Modal>
     </Root>
   );

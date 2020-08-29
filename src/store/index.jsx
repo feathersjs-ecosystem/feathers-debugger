@@ -25,16 +25,17 @@ export const initialState = {
   url: cache.url || 'http://localhost:3030',
   data: [],
   zoomFactor: 1,
-  pollInterval: 1500,
+  pollIntervals: [500, 1000, 2000, 5000, 10000, 15000, 60000],
+  pollInterval: cache.pollInterval || 1000,
   timeframes: [10 / 60, 30 / 60, 5, 15],
   autoZoom: cache.autoZoom || true,
   condensed: cache.condensed || false,
   timeframe: cache.timeframe || 5,
   percentile: undefined,
-  tail: cache.tail || true,
+  tail: 'tail' in cache ? cache.tail : true,
   fetchError: null,
   stats: undefined,
-  settingsOpen: true,
+  settingsPane: false,
   protocol: cache.protocol || 'http',
 };
 
@@ -55,6 +56,7 @@ const updateCache = state => {
           timeframe: state.timeframe,
           tail: state.tail,
           protocol: state.protocol,
+          pollInterval: state.pollInterval,
         })
       );
     } catch (e) {
@@ -67,9 +69,9 @@ const updateCache = state => {
 export function updateContext(update, cb) {
   this.setState(currentState => {
     const newState = { ...currentState, ...update };
-    updateCache(newState, cb);
+    updateCache(newState);
     return update;
-  });
+  }, cb);
 }
 
 export default AppContext;

@@ -1,0 +1,1 @@
+ignores: ["@svgr/parcel-plugin-svgr", "parcel-*"]

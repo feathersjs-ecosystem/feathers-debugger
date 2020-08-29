@@ -5,6 +5,7 @@ export default {
   light: 'rgba(0, 0, 0, 0.5)',
   primary: '#593C8F',
   background: '#F4F1F9',
+  success: '#44BBA4',
   danger: '#DB5461',
   warning: '#EDB007',
   border: '#eee',
