@@ -41,4 +41,3 @@ Contributions are welcome!
 - yarn build
 - Create github release
 - Upload to Chrome Store
-

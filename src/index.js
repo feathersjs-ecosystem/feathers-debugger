@@ -8,11 +8,11 @@ import theme from './theme';
 
 // Initialize the devtools panel
 if (process.env.NODE_ENV === 'production') {
-  chrome.devtools.panels.create( // eslint-disable-line
-    'Feathers',
-    null,
-    'devtools.html'
-  );
+  if(chrome.devtools) chrome.devtools.panels.create( // eslint-disable-line
+      'Feathers',
+      null,
+      'devtools.html'
+    );
 }
 
 class App extends Component {
